@@ -1,6 +1,5 @@
 package com.zhy.traveller.common;
-
-import com.baomidou.mybatisplus.extension.api.R;
+import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +9,7 @@ import java.util.Map;
  *创建者: 罗义恒
  *创建时间:2022/10/30 22:15
  */
+@Data
 public class Response<T> {
     private Boolean success;
 
@@ -43,21 +43,6 @@ public class Response<T> {
     public Response<T> add(String key, Object value) {
         this.map.put(key, value);
         return this;
-    }
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
     }
 
     public Boolean getSuccess() {
