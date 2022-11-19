@@ -1,0 +1,57 @@
+server:
+  port: 8888
+spring:
+  #  配置数据源
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #    boot2.4.2及之前+mysql驱动8以上不设置时空会报错
+    url: jdbc:mysql://localhost:3306/traveller?useSSL=false&serverTimezone=UTC
+    username: root
+    password: yiheng666!
+  #redis配置
+  redis:
+    #redis服务器地址
+    host: localhost
+    #redis服务器连接端口
+    port: 6379
+    #数据库索引(默认为0)
+    database: 0
+    #连接超时时间(毫秒)
+    timeout: 1800000
+    lettuce:
+      pool:
+        #最大阻塞等待时间(负数表示没限制)
+        max-wait: -1
+        #连接池的最大空闲连接
+        max-idle: 10
+        #连接池中的最小空闲连接
+        min-idle: 0
+        #连接池最大连接数(使用负值表示没有限制)
+        max-active: 30
+    password: yiheng666!
+  servlet:
+    multipart:
+      max-file-size: 10MB # 单个文件上传的最大值
+      max-request-size: 10MB # 上传文件的最大值
+  # 将项静态目资源路径映射到系统资源路径下
+  web:
+    resources:
+      static-locations: file:D:\upload\headImage
+  mvc:
+    static-path-pattern: /static/**
+  # 项目静态资源路径,可以不写默认为/**
+mybatis-plus:
+  configuration:
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+        db-config:
+          #设置统一的全局id生成策略:有当用户未输入时，采用雪花算法生成一个适用于分布式环境的全局唯一主键，类型可以是String和number
+          id-type: ASSIGN_ID
+  #告知映射文件的位置
+  mapper-locations: classpath*:/mapper/**/*.xml
+    #  给POJO类起别名
+  type-aliases-package: com/zhy/traveller/pojo
+
