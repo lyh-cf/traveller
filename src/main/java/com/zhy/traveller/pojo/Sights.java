@@ -9,24 +9,23 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
-/*
- *文件名: User
- *创建者: 罗义恒
- *创建时间:2022/10/30 21:55
+/**
+ * <p>
+ * 
+ * </p>
+ *
+ * @author 罗义恒
+ * @since 2022-11-25
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class User implements Serializable {
-    private static final long serialVersionUID=1L;
+public class Sights implements Serializable {
 
+    private static final long serialVersionUID = 1L;
 
-    //mybatis-plus会默认把id作为主键
-    /*
-    @TableId将属性所对应的字段指定为主键，另外Mybatis-plus默认用雪花算法生成id
-    如果数据库设计id自增，那么需要在pojo的id属性加@TableId，并指定type为自增
-    否则还是会默认用雪花算法生成
-     */
     /**
      * ID
      */
@@ -35,34 +34,55 @@ public class User implements Serializable {
     private Long pkId;
 
     /**
-     * 邮箱
+     * 景点名
      */
-    private String userEmail;
+    private String sightsName;
 
     /**
-     * 用户名
+     * 景点图片
      */
-    private String userName;
+    private String sightsImage;
 
     /**
-     * 登录密码
+     * 所属省份
      */
-    private String passWord;
+    private String province;
 
     /**
-     * 头像
+     * 所属城市
      */
-    private String headImage;
+    private String city;
 
     /**
-     * 性别(1表示男,2表示女)
+     * 景点介绍
      */
-    private Integer sex;
+    private String sightBriefIntroduction;
 
     /**
-     * 生日
+     * 价格
      */
-    private String birthday;
+    private BigDecimal price;
+
+    /**
+     * 参观日期
+     */
+    private LocalDate visitDay;
+
+    /**
+     * 总数量
+     */
+    private Integer totalNum;
+
+    /**
+     * 现有数量
+     */
+    private Integer nowNum;
+
+    /**
+     * 1表示有效，0表示无效
+     */
+    private Integer state;
+
     /**
      * 1表示删除,0表示存在
      */

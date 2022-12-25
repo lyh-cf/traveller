@@ -3,12 +3,12 @@ server:
 spring:
   #  配置数据源
   datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #    boot2.4.2及之前+mysql驱动8以上不设置时空会报错
+    #boot2.4.2及之前+mysql驱动8以上不设置时空会报错
     url: jdbc:mysql://localhost:3306/traveller?useSSL=false&serverTimezone=UTC
     username: root
     password: yiheng666!
+    type: com.alibaba.druid.pool.DruidDataSource
   #redis配置
   redis:
     #redis服务器地址
@@ -19,6 +19,7 @@ spring:
     database: 0
     #连接超时时间(毫秒)
     timeout: 1800000
+    #    Spring默认使用的是lettuce,如果要用jedis的连接池需导入jedis的相关依赖
     lettuce:
       pool:
         #最大阻塞等待时间(负数表示没限制)
@@ -37,14 +38,15 @@ spring:
   # 将项静态目资源路径映射到系统资源路径下
   web:
     resources:
-      static-locations: file:D:\upload\headImage
+      static-locations: file:D:\upload\Image
   mvc:
+    # 项目静态资源路径,可以不写默认为/**
     static-path-pattern: /static/**
-  # 项目静态资源路径,可以不写默认为/**
 mybatis-plus:
   configuration:
     #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
     map-underscore-to-camel-case: true
+    #开启mybatis-plus的日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
         db-config:
@@ -52,6 +54,10 @@ mybatis-plus:
           id-type: ASSIGN_ID
   #告知映射文件的位置
   mapper-locations: classpath*:/mapper/**/*.xml
-    #  给POJO类起别名
+    #给POJO类起别名
   type-aliases-package: com/zhy/traveller/pojo
+
+#图片上传路径
+traveller:
+  path: D:\upload\headImage\
 

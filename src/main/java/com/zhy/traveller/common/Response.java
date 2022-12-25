@@ -22,20 +22,32 @@ public class Response<T> {
    // private Map map = new HashMap(); //动态数据
     //把构造方法私有
     private Response() {}
-
-    public static <T> Response<T> success(CodeMsgEnum codeMsg,T object) {
+    public static <T> Response<T> success() {
         Response<T> response = new Response<T>();
-        response.data = object;
-        response.code = codeMsg.getCode();
-        response.msg=codeMsg.getMsg();
+        response.code = CodeMsgEnum.SUCCESS.getCode();
+        response.msg=CodeMsgEnum.SUCCESS.getMsg();
         response.setSuccess(true);
         return response;
     }
-
+    public static <T> Response<T> success(T object) {
+        Response<T> response = new Response<T>();
+        response.data = object;
+        response.code = CodeMsgEnum.SUCCESS.getCode();
+        response.msg=CodeMsgEnum.SUCCESS.getMsg();
+        response.setSuccess(true);
+        return response;
+    }
     public static <T> Response<T> error(CodeMsgEnum codeMsg) {
         Response<T> response = new Response<T>();
         response.code = codeMsg.getCode();
         response.msg=codeMsg.getMsg();
+        response.setSuccess(false);
+        return response;
+    }
+    public static <T> Response<T> error() {
+        Response<T> response = new Response<T>();
+        response.code = CodeMsgEnum.FAIL.getCode();
+        response.msg=CodeMsgEnum.FAIL.getMsg();
         response.setSuccess(false);
         return response;
     }

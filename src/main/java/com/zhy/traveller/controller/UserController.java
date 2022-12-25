@@ -1,22 +1,24 @@
 package com.zhy.traveller.controller;
 
-import com.zhy.traveller.common.CodeMsgEnum;
 import com.zhy.traveller.common.Response;
-import com.zhy.traveller.controller.dto.UserMsg;
+import com.zhy.traveller.converter.UserMapper;
+import com.zhy.traveller.dto.UserDTO;
 import com.zhy.traveller.pojo.User;
-import com.zhy.traveller.service.IUserService;
+import com.zhy.traveller.service.UserService;
 import com.zhy.traveller.utils.JwtUtil;
 import com.zhy.traveller.utils.MD5;
 import com.zhy.traveller.utils.SendEmail;
+import com.zhy.traveller.vo.UserInfo;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
+
+import static com.zhy.traveller.utils.RedisConstans.*;
 
 /*
  *文件名: UserController
@@ -28,51 +30,56 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/user")
 public class UserController {
     @Autowired
-    private IUserService IUserService;
+    private UserService userService;
 
     @Autowired
     private RedisTemplate redisTemplate;
 
     @PostMapping("/login")
     //接收JSON格式的数据，参数名需要对应
-    public Response<User>login(HttpServletResponse response,@RequestBody UserMsg userMsg){
-           userMsg.setPassWord(MD5.Encrypt(userMsg.getPassWord()));
-           User result = IUserService.login(userMsg);
-           if(result==null)return Response.error(CodeMsgEnum.LOGIN_FAIL);
-           else{
-               String token= JwtUtil.createToken(userMsg.getPkId());
-               Cookie cookie = new Cookie("token", token);
-               cookie.setMaxAge(60 * 60);
-               response.addCookie(cookie);
-               return Response.success(CodeMsgEnum.LOFIN_SUCCESS,result);
-           }
-
+    public Response loginUser(@RequestBody UserDTO userMsg) {
+        userMsg.setPassWord(MD5.Encrypt(userMsg.getPassWord()));
+        User user= UserMapper.INSTANCT.conver(userMsg);
+        User result = userService.login(user);
+        if (result == null) return Response.error();
+        else {
+            String token = JwtUtil.createToken(result.getPkId());
+            redisTemplate.opsForValue().set(USER_TOKEN_KEY+token, result.getPkId(), USER_TOKEN_TTL, TimeUnit.MINUTES);
+            UserInfo userInfo=UserMapper.INSTANCT.conver(result);
+            userInfo.setToken(token);
+            return Response.success(userInfo);
+        }
     }
+
     @SneakyThrows
     @PostMapping("/sendCode")
-    public Response sendCode(@RequestBody UserMsg userMsg){
+    public Response sendCode(@RequestBody UserDTO userMsg) {
         int code = SendEmail.send(userMsg.getUserEmail());
-        if(code==-1)return Response.error(CodeMsgEnum.SENDEMAIL_FAIL);
+        if (code == -1) return Response.error();
         //将验证码缓存到redis，有效时间5分钟
-        redisTemplate.opsForValue().set(userMsg.getUserEmail(),code,5, TimeUnit.MINUTES);
-        return Response.success(CodeMsgEnum.SENDEMAIL_SUCCESS,null);
+        redisTemplate.opsForValue().set(VERIFY_CODE_KEY+userMsg.getUserEmail(), code, VERIFY_CODE_TTL, TimeUnit.MINUTES);
+        return Response.success();
     }
 
     @PostMapping("/enroll")
-    public Response<User>enroll(@RequestBody UserMsg userMsg){
-            //从Redis中获取缓存的验证码
-            Object code = redisTemplate.opsForValue().get(userMsg.getUserEmail());
-            if(code!=null&&code.equals(userMsg.getCode())){
-                if(!IUserService.checkUserEmailIsExist(userMsg.getUserEmail())){
-                    userMsg.setPassWord(MD5.Encrypt(userMsg.getPassWord()));
-                    IUserService.save(userMsg);
-                    redisTemplate.delete(userMsg.getUserEmail());
-                    System.out.println(userMsg.getPkId());
-                    return Response.success(CodeMsgEnum.ENROLL_SUCCESS,userMsg);
-                }
-                else return Response.error(CodeMsgEnum.ENROLL_FAIL);
-            }
-            else return Response.error(CodeMsgEnum.ENROLL_FAIL);
+    public Response enroll(@RequestBody UserDTO userMsg) {
+        //从Redis中获取缓存的验证码
+        Object code = redisTemplate.opsForValue().get(userMsg.getUserEmail());
+        if (code != null && code.equals(userMsg.getVerifyCode())) {
+            if (!userService.checkUserEmailIsExist(userMsg.getUserEmail())) {
+                userMsg.setPassWord(MD5.Encrypt(userMsg.getPassWord()));
+                User user=UserMapper.INSTANCT.conver(userMsg);
+                userService.save(user);
+                redisTemplate.delete(userMsg.getUserEmail());
+                return Response.success();
+            } else return Response.error();
+        } else return Response.error();
     }
 
+    @RequestMapping("/signout")
+    public Response signout(HttpServletRequest request) {
+        String token = request.getHeader("authorization");
+        redisTemplate.delete(USER_TOKEN_KEY+token);
+        return Response.success();
+    }
 }

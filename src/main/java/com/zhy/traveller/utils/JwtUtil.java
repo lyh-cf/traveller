@@ -18,12 +18,12 @@ public class JwtUtil {
                 .setHeaderParam("typ","JWT")//Token类型
                 .setHeaderParam("alg","HS256")//加密算法
                 //载荷payload,信息
-                .claim("userId",userId)
+                .claim("userId",""+userId)
                 //.claim("role","admin")
                 //主题
                 .setSubject("jwt")
                 //有效时间
-                .setExpiration(new Date(System.currentTimeMillis()+expire))
+                //.setExpiration(new Date(System.currentTimeMillis()+expire))
                 //ID
                 .setId(UUID.randomUUID().toString())
                 //signature签名
@@ -32,11 +32,11 @@ public class JwtUtil {
                 .compact();
         return jwtToken;
     }
-    public static Long getUserId(String token){
+    public static String getUserId(String token){
         JwtParser jwtParser=Jwts.parser();
         Jws<Claims> claimsJws = jwtParser.setSigningKey(secret).parseClaimsJws(token);
         Claims claims=claimsJws.getBody();
-        return (Long) claims.get("userId");
+        return (String) claims.get("userId");
     }
     public static boolean checkToken(String token){
         if(token==null){
@@ -48,10 +48,14 @@ public class JwtUtil {
         } catch (Exception e) {
             //不管解析的内容，只要解析异常，就返回false
             return false;
-           //e.printStackTrace();
         }
         return true;
 
     }
 
+    public static void main(String[] args) {
+        String token1=createToken(1L);
+
+        System.out.println(checkToken(token1));
+    }
 }
